@@ -4,10 +4,10 @@ import (
 	"bufio"
 	"fmt"
 	"math/rand"
-	"time"
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const (
@@ -23,6 +23,7 @@ var reader = bufio.NewReader(os.Stdin)
 
 type Game struct {
 	answer int
+	guess  int
 }
 
 // Initializes the game with a random number between 1 and 100, inclusive.
@@ -31,28 +32,28 @@ func (g *Game) initialize() {
 	g.answer = rand.Intn(MAX-MIN) + MIN
 }
 
+// Checks whether the given guess is the correct answer.
+func (g *Game) checkAnswer() int {
+	if g.guess == g.answer {
+		return GUESS_CORRECT
+	} else if g.guess < g.answer {
+		return GUESS_TOO_LOW
+	} else {
+		return GUESS_TOO_HIGH
+	}
+}
+
 // Prompts the user for input and verifies the input is valid.
-func (g *Game) takeGuess() int {
+func (g *Game) getPlayersGuess() {
 	fmt.Print("Please take a guess: ")
 	text, _ := reader.ReadString('\n')
 	text = strings.Replace(text, "\n", "", -1)
 	guess, err := strconv.Atoi(text)
 	if err != nil || guess < MIN || guess > MAX {
 		fmt.Printf(GUESS_NOT_VALID, MIN, MAX)
-		g.takeGuess()
+		g.getPlayersGuess()
 	}
-	return g.checkAnswer(guess)
-}
-
-// Checks whether the given guess is the correct answer.
-func (g *Game) checkAnswer(guess int) int {
-	if guess == g.answer {
-		return GUESS_CORRECT
-	} else if guess < g.answer {
-		return GUESS_TOO_LOW
-	} else {
-		return GUESS_TOO_HIGH
-	}
+	g.guess = guess
 }
 
 func main() {
@@ -63,7 +64,8 @@ func main() {
 	var result int
 	var guesses = 1
 	for playing {
-		result = g.takeGuess()
+		g.getPlayersGuess()
+		result = g.checkAnswer()
 		if result == GUESS_CORRECT {
 			break
 		} else if result == GUESS_TOO_LOW {
